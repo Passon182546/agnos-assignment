@@ -29,29 +29,36 @@ const FormWrapper = ({ error, options }: { error?: any, options?: SelectOption[]
 };
 
 describe('SelectField Component', () => {
-  it('เรนเดอร์ Label และ Options แบบหลายตัวเลือกได้อย่างถูกต้อง', () => {
+  it('เรนเดอร์ Label และแสดงตัวเลือกได้อย่างถูกต้อง', async () => {
+    const user = userEvent.setup();
     render(<FormWrapper />);
     
     // ตรวจสอบ Label
     expect(screen.getByText('เพศ')).toBeInTheDocument();
     
-    // ตรวจสอบ Options
-    expect(screen.getByRole('option', { name: '-- กรุณาเลือก --' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'ชาย' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'หญิง' })).toBeInTheDocument();
+    // เปิด dropdown
+    const triggerButton = screen.getByRole('button', { name: /-- Please select --/ });
+    await user.click(triggerButton);
+    
+    // ตรวจสอบ Options มีอยู่
+    expect(screen.getByRole('button', { name: 'ชาย' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'หญิง' })).toBeInTheDocument();
   });
 
   it('สามารถกดเปลี่ยนตัวเลือก (Select) ได้', async () => {
     const user = userEvent.setup();
     render(<FormWrapper />);
     
-    const selectElement = screen.getByLabelText('เพศ');
+    // เปิด dropdown
+    const triggerButton = screen.getByRole('button', { name: /-- Please select --/ });
+    await user.click(triggerButton);
     
-    // จำลองการกดเลือกเพศหญิง
-    await user.selectOptions(selectElement, 'female');
+    // เลือกตัวเลือก
+    const femaleOption = screen.getByRole('button', { name: 'หญิง' });
+    await user.click(femaleOption);
     
-    // ตรวจสอบว่าค่าของ Select เปลี่ยนแปลงอย่างถูกต้อง
-    expect(selectElement).toHaveValue('female');
+    // ตรวจสอบว่าเปลี่ยนเป็น 'หญิง'
+    expect(screen.getByRole('button', { name: /หญิง/ })).toBeInTheDocument();
   });
 
   it('ทำการเลือกอัตโนมัติหากมีเพียง 1 ตัวเลือก (Auto-select)', () => {
@@ -59,11 +66,9 @@ describe('SelectField Component', () => {
     const singleOption = [{ value: 'thai', label: 'ไทย' }];
     render(<FormWrapper options={singleOption} />);
     
-    const selectElement = screen.getByLabelText('เพศ');
-    
-    // ระบบต้องเลือก 'thai' ให้อัตโนมัติ และไม่มี Placeholder 
-    expect(selectElement).toHaveValue('thai');
-    expect(screen.queryByText('-- กรุณาเลือก --')).not.toBeInTheDocument();
+    // ระบบต้องแสดง 'ไทย' ให้อัตโนมัติ 
+    expect(screen.getByRole('button', { name: /ไทย/ })).toBeInTheDocument();
+    expect(screen.queryByText('-- Please select --')).not.toBeInTheDocument();
   });
 
   it('แสดงข้อความ Error และเปลี่ยนสีกรอบเป็นสีแดง', () => {
@@ -72,6 +77,6 @@ describe('SelectField Component', () => {
     
     // ตรวจสอบข้อความและการเปลี่ยนสีของ CSS
     expect(screen.getByText('กรุณาระบุเพศ')).toHaveClass('text-red-500');
-    expect(screen.getByLabelText('เพศ')).toHaveClass('border-red-500');
+    expect(screen.getByRole('button', { name: /-- Please select --/ })).toHaveClass('border-red-500');
   });
 });

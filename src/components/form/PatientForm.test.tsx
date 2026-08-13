@@ -1,91 +1,117 @@
 import React from "react";
-import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PatientForm from "./PatientForm";
 
-// จำลองฟังก์ชัน alert() เพื่อไม่ให้เกิด Error ในโหมดทดสอบ (เนื่องจาก Node.js ไม่มี window.alert)
 beforeAll(() => {
   jest.spyOn(window, "alert").mockImplementation(() => {});
 });
 
 describe("PatientForm Component", () => {
-  it("เรนเดอร์หัวข้อและช่องกรอกข้อมูลครบถ้วน", () => {
+  it("renders the main form structure correctly", () => {
     render(<PatientForm />);
 
-    // ตรวจสอบการเรนเดอร์หัวข้อและปุ่ม
-    expect(
-      screen.getByText("ข้อมูลผู้ป่วย (Patient Information)"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "ส่งข้อมูล" }),
-    ).toBeInTheDocument();
-
-    // ตรวจสอบช่องกรอกหลักๆ
-    expect(screen.getByLabelText(/ชื่อจริง/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/นามสกุล/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/เบอร์โทรศัพท์/i)).toBeInTheDocument();
+    expect(screen.getByText("Patient Information")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Submit Information" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/First Name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Last Name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Phone Number/i)).toBeInTheDocument();
   });
 
-  it("แสดงข้อความแจ้งเตือนเมื่อกดส่งข้อมูลโดยไม่กรอกข้อมูลที่จำเป็น", async () => {
+  it("displays a compact decade of years instead of all 120 birth years at once", async () => {
     const user = userEvent.setup();
     render(<PatientForm />);
 
-    // กดปุ่มส่งข้อมูลทันทีโดยที่ยังว่างเปล่า
-    const submitButton = screen.getByRole("button", { name: "ส่งข้อมูล" });
+    const dateTrigger = screen.getByRole("button", { name: /select date of birth/i });
+    await user.click(dateTrigger);
+    await user.click(screen.getByRole("button", { name: /select month/i }));
+    await user.click(screen.getByRole("button", { name: /select year/i }));
+
+    const yearButtons = screen.getAllByRole("button").filter((button) =>
+      /^Select year \d{4}$/.test(button.getAttribute("aria-label") || ""),
+    );
+
+    expect(yearButtons.length).toBeLessThan(25);
+    expect(yearButtons.length).toBeGreaterThan(0);
+  });
+
+  it("shows validation errors when required fields are empty", async () => {
+    const user = userEvent.setup();
+    render(<PatientForm />);
+
+    const submitButton = screen.getByRole("button", { name: "Submit Information" });
     await user.click(submitButton);
 
-    // การทำงานของ React Hook Form เป็นแบบ Asynchronous เราจึงต้องใช้ findByText เพื่อรอให้ข้อความปรากฏ
-    expect(await screen.findByText("กรุณากรอกชื่อจริง")).toBeInTheDocument();
-    expect(await screen.findByText("กรุณากรอกนามสกุล")).toBeInTheDocument();
-    expect(await screen.findByText("กรุณาระบุเพศ")).toBeInTheDocument();
+    expect(await screen.findByText("Please enter your first name")).toBeInTheDocument();
+    expect(await screen.findByText("Please enter your last name")).toBeInTheDocument();
+    expect(await screen.findByText("Please select your gender")).toBeInTheDocument();
   });
 
-  it("ดักจับและแจ้งเตือนทันทีเมื่อเบอร์โทรศัพท์ผิดรูปแบบ (โหมด onChange)", async () => {
+  it("validates the phone number immediately in onChange mode", async () => {
     const user = userEvent.setup();
     render(<PatientForm />);
 
-    const phoneInput = screen.getByLabelText(/เบอร์โทรศัพท์/i);
-
-    // จำลองการพิมพ์ตัวเลขแค่ 4 ตัว (ผิดเงื่อนไข Zod ที่ต้องมี 9-10 ตัว)
+    const phoneInput = screen.getByLabelText(/Phone Number/i);
     await user.type(phoneInput, "1234");
 
-    // ระบบควรแจ้งเตือนทันทีโดยไม่ต้องกด Submit
     expect(
-      await screen.findByText(
-        "รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (ต้องเป็นตัวเลข 9-10 หลัก)",
-      ),
+      await screen.findByText("Phone number format is invalid (must be 9-10 digits)"),
     ).toBeInTheDocument();
   });
 
-  it("สามารถกดส่งข้อมูลได้เมื่อกรอกข้อมูลถูกต้องและครบถ้วน", async () => {
+  it("keeps the date field blank until the calendar is opened and defaults to today inside the picker", async () => {
     const user = userEvent.setup();
     render(<PatientForm />);
 
-    // กรอกข้อมูลในช่องที่จำเป็น (Required) ให้ครบ
-    await user.type(screen.getByLabelText(/ชื่อจริง/i), "พัสสน");
-    await user.type(screen.getByLabelText(/นามสกุล/i), "สุดหล่อ");
-    // แทนที่บรรทัดเดิม
-    const dateInput = screen.getByLabelText(/วันเกิด/i);
-    fireEvent.change(dateInput, { target: { value: "1990-01-01" } });
-    await user.selectOptions(screen.getByLabelText(/เพศ/i), "male");
-    await user.type(screen.getByLabelText(/เบอร์โทรศัพท์/i), "0812345678");
-    await user.type(screen.getByLabelText(/ที่อยู่/i), "123 ถ.สุขุมวิท กทม.");
-    await user.selectOptions(screen.getByLabelText(/ภาษาที่ถนัด/i), "thai");
-    await user.type(screen.getByLabelText(/สัญชาติ/i), "ไทย");
+    expect(screen.getByRole("button", { name: /select date of birth/i })).toHaveTextContent("dd / mm / yyyy");
 
-    // กดส่งข้อมูล
-    const submitButton = screen.getByRole("button", { name: "ส่งข้อมูล" });
+    const dateTrigger = screen.getByRole("button", { name: /select date of birth/i });
+    await user.click(dateTrigger);
+
+    expect(screen.getByText(/January|February|March|April|May|June|July|August|September|October|November|December/i)).toBeInTheDocument();
+    const today = new Date();
+    const todayDay = today.getDate();
+    expect(screen.getByRole("button", { name: `Select day ${todayDay}` })).toBeInTheDocument();
+  });
+
+  it("accepts valid form submission when required information is complete", async () => {
+    const user = userEvent.setup();
+    render(<PatientForm />);
+
+    await user.type(screen.getByLabelText(/First Name/i), "Pat");
+    await user.type(screen.getByLabelText(/Last Name/i), "Smith");
+
+    const dateTrigger = screen.getByRole("button", { name: /select date of birth/i });
+    await user.click(dateTrigger);
+    const today = new Date();
+    await user.click(screen.getByRole("button", { name: `Select day ${today.getDate()}` }));
+
+    // Select Gender
+    const genderButton = screen.getAllByRole("button", { name: /-- Please select --/ })[0];
+    await user.click(genderButton);
+    await user.click(screen.getByRole("button", { name: "Male" }));
+
+    await user.type(screen.getByLabelText(/Phone Number/i), "0812345678");
+    await user.type(screen.getByLabelText(/Address/i), "123 Sukhumvit Road");
+
+    // Select Preferred Language
+    const languageButton = screen.getAllByRole("button", { name: /-- Please select --/ })[0];
+    await user.click(languageButton);
+    await user.click(screen.getByRole("button", { name: "Thai" }));
+
+    await user.type(screen.getByLabelText(/Nationality/i), "Thai");
+
+    const submitButton = screen.getByRole("button", { name: "Submit Information" });
     await user.click(submitButton);
 
-    // ตรวจสอบว่าฟังก์ชัน onSubmit ทำงานสำเร็จ โดยดูจากการเรียกใช้งาน alert()
     await waitFor(() => {
       expect(window.alert).toHaveBeenCalledWith(
-        "ตรวจสอบข้อมูลถูกต้อง (เดี๋ยวเราจะเชื่อมระบบ Real-time ในภายหลัง)",
+        "Submission successful! The staff has received your information.",
       );
     });
   });
 
-  it("ส่งข้อมูล sync ไปยัง API เมื่อผู้ป่วยกรอกข้อมูลแล้ว", async () => {
+  it("sends sync data to the API when the patient begins typing", async () => {
     const fetchMock = jest.fn().mockResolvedValue({ ok: true } as Response);
     Object.defineProperty(global, "fetch", {
       value: fetchMock,
@@ -95,8 +121,8 @@ describe("PatientForm Component", () => {
 
     render(<PatientForm />);
 
-    fireEvent.change(screen.getByLabelText(/ชื่อจริง/i), {
-      target: { value: "ประชัน" },
+    fireEvent.change(screen.getByLabelText(/First Name/i), {
+      target: { value: "Charlie" },
     });
 
     await waitFor(() => {
@@ -109,18 +135,15 @@ describe("PatientForm Component", () => {
       );
     }, { timeout: 2000 });
   });
-  
-  it("ใช้ระบบสุ่ม ID สำรอง (Fallback) เมื่อเบราว์เซอร์ไม่รองรับ crypto", () => {
-    // ลบ crypto ออกชั่วคราวเพื่อจำลองสภาพแวดล้อมเบราว์เซอร์รุ่นเก่า
+
+  it("renders normally when crypto is unavailable", () => {
     const originalCrypto = global.crypto;
-    Object.defineProperty(global, 'crypto', { value: undefined, writable: true });
+    Object.defineProperty(global, "crypto", { value: undefined, writable: true });
 
     render(<PatientForm />);
-    
-    // ตรวจสอบว่าฟอร์มยังคงเรนเดอร์ได้ปกติแม้ไม่มี crypto
-    expect(screen.getByText("ข้อมูลผู้ป่วย (Patient Information)")).toBeInTheDocument();
 
-    // คืนค่า crypto กลับมาเพื่อไม่ให้กระทบเทสต์ตัวอื่น
-    Object.defineProperty(global, 'crypto', { value: originalCrypto, writable: true });
+    expect(screen.getByText("Patient Information")).toBeInTheDocument();
+
+    Object.defineProperty(global, "crypto", { value: originalCrypto, writable: true });
   });
 });

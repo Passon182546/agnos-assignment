@@ -33,7 +33,7 @@ describe('Patient Form Validation Schema', () => {
     expect(result.success).toBe(false);
     
     if (!result.success) {
-      expect(result.error.issues[0].message).toBe('รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (ต้องเป็นตัวเลข 9-10 หลัก)');
+      expect(result.error.issues[0].message).toBe('Phone number format is invalid (must be 9-10 digits)');
     }
   });
 
