@@ -1,8 +1,7 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PatientForm from "./PatientForm";
-import { fireEvent } from "@testing-library/react";
 
 // จำลองฟังก์ชัน alert() เพื่อไม่ให้เกิด Error ในโหมดทดสอบ (เนื่องจาก Node.js ไม่มี window.alert)
 beforeAll(() => {
@@ -84,5 +83,44 @@ describe("PatientForm Component", () => {
         "ตรวจสอบข้อมูลถูกต้อง (เดี๋ยวเราจะเชื่อมระบบ Real-time ในภายหลัง)",
       );
     });
+  });
+
+  it("ส่งข้อมูล sync ไปยัง API เมื่อผู้ป่วยกรอกข้อมูลแล้ว", async () => {
+    const fetchMock = jest.fn().mockResolvedValue({ ok: true } as Response);
+    Object.defineProperty(global, "fetch", {
+      value: fetchMock,
+      writable: true,
+      configurable: true,
+    });
+
+    render(<PatientForm />);
+
+    fireEvent.change(screen.getByLabelText(/ชื่อจริง/i), {
+      target: { value: "ประชัน" },
+    });
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/pusher",
+        expect.objectContaining({
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+    }, { timeout: 2000 });
+  });
+  
+  it("ใช้ระบบสุ่ม ID สำรอง (Fallback) เมื่อเบราว์เซอร์ไม่รองรับ crypto", () => {
+    // ลบ crypto ออกชั่วคราวเพื่อจำลองสภาพแวดล้อมเบราว์เซอร์รุ่นเก่า
+    const originalCrypto = global.crypto;
+    Object.defineProperty(global, 'crypto', { value: undefined, writable: true });
+
+    render(<PatientForm />);
+    
+    // ตรวจสอบว่าฟอร์มยังคงเรนเดอร์ได้ปกติแม้ไม่มี crypto
+    expect(screen.getByText("ข้อมูลผู้ป่วย (Patient Information)")).toBeInTheDocument();
+
+    // คืนค่า crypto กลับมาเพื่อไม่ให้กระทบเทสต์ตัวอื่น
+    Object.defineProperty(global, 'crypto', { value: originalCrypto, writable: true });
   });
 });
