@@ -25,10 +25,10 @@ const InputField: React.FC<InputFieldProps> = ({
       <input
         id={name}
         type={type}
-        className={`px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 transition-colors sm:text-sm ${
+        className={`px-3 py-2.5 border rounded-lg shadow-sm focus:outline-none focus:ring-2 transition-colors sm:text-sm ${
           error 
             ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+            : 'border-slate-300 focus:ring-[#BFD4F8] focus:border-[#1A59C2]'
         }`}
         {...rest}
         {...register(name)}

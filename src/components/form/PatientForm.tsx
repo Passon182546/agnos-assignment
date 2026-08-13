@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { patientFormSchema, PatientFormData } from "@/lib/validations";
 import InputField from "./InputField";
 import SelectField from "./SelectField";
+import DatePickerField from "./DatePickerField";
 import { useFormSync } from "@/hooks/useFormSync"; // Custom Hook สำหรับซิงก์ข้อมูลฟอร์มแบบ Real-time
 
 const PatientForm: React.FC = () => {
@@ -43,37 +44,33 @@ const PatientForm: React.FC = () => {
 
   // ฟังก์ชันจัดการเมื่อกด Submit
   const onSubmit = (data: PatientFormData) => {
-    alert("ส่งข้อมูลสำเร็จ! เจ้าหน้าที่ได้รับข้อมูลของคุณเรียบร้อยแล้ว");
+    alert("Submission successful! The staff has received your information.");
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md"
-    >
-      {/* ส่วนหัวของฟอร์ม (แก้ไขเพิ่ม Status Badge สำหรับ UX) */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 border-b pb-4 gap-2">
-        <h2 className="text-2xl font-bold text-gray-800">
-          ข้อมูลผู้ป่วย (Patient Information)
-        </h2>
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full mx-auto">
+      {/* Form header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 pb-4 border-b border-slate-100 gap-4">
+        <h2 className="text-xl font-bold text-slate-800">Patient Information</h2>
 
-        {/* ป้ายกำกับสถานะ (Status Badge) ให้ผู้ป่วยและเราเห็นว่าระบบ Real-time กำลังทำงาน */}
-        <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-md border border-gray-100">
-          <span className="text-sm font-medium text-gray-500">สถานะ:</span>
+        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            Status
+          </span>
           <span
-            className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+            className={`px-2.5 py-1 text-xs font-bold rounded-full transition-colors ${
               syncStatus === "submitted"
-                ? "bg-green-100 text-green-700"
+                ? "bg-[#EAF2FF] text-[#1A59C2]"
                 : syncStatus === "actively filling in"
-                  ? "bg-blue-100 text-blue-700 animate-pulse"
-                  : "bg-gray-200 text-gray-600"
+                  ? "bg-[#EAF2FF] text-[#1A59C2] animate-pulse"
+                  : "bg-slate-100 text-slate-600"
             }`}
           >
             {syncStatus === "submitted"
-              ? "ส่งข้อมูลแล้ว"
+              ? "Submitted"
               : syncStatus === "actively filling in"
-                ? "กำลังพิมพ์..."
-                : "พักหน้าจอ"}
+                ? "Filling in..."
+                : "Waiting"}
           </span>
         </div>
       </div>
@@ -81,48 +78,48 @@ const PatientForm: React.FC = () => {
       {/* กล่องรับข้อมูล (โครงสร้างเดิม) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
         <InputField
-          label="ชื่อจริง *"
+          label="First Name *"
           name="firstName"
           register={register}
           error={errors.firstName}
-          placeholder="ระบุชื่อจริง"
+          placeholder="Enter first name"
         />
         <InputField
-          label="ชื่อกลาง (ทางเลือก)"
+          label="Middle Name (optional)"
           name="middleName"
           register={register}
           error={errors.middleName}
         />
         <InputField
-          label="นามสกุล *"
+          label="Last Name *"
           name="lastName"
           register={register}
           error={errors.lastName}
-          placeholder="ระบุนามสกุล"
+          placeholder="Enter last name"
         />
-        <InputField
-          label="วันเกิด *"
+        <DatePickerField
+          label="Date of Birth *"
           name="dateOfBirth"
-          type="date"
           register={register}
+          setValue={setValue}
           error={errors.dateOfBirth}
         />
 
         <SelectField
-          label="เพศ *"
+          label="Gender *"
           name="gender"
           setValue={setValue}
           register={register}
           error={errors.gender}
           options={[
-            { value: "male", label: "ชาย" },
-            { value: "female", label: "หญิง" },
-            { value: "other", label: "อื่นๆ" },
+            { value: "male", label: "Male" },
+            { value: "female", label: "Female" },
+            { value: "other", label: "Other" },
           ]}
         />
 
         <InputField
-          label="เบอร์โทรศัพท์ *"
+          label="Phone Number *"
           name="phoneNumber"
           type="tel"
           register={register}
@@ -130,7 +127,7 @@ const PatientForm: React.FC = () => {
           placeholder="08XXXXXXXX"
         />
         <InputField
-          label="อีเมล (ทางเลือก)"
+          label="Email (optional)"
           name="email"
           type="email"
           register={register}
@@ -140,64 +137,64 @@ const PatientForm: React.FC = () => {
 
         <div className="md:col-span-2">
           <InputField
-            label="ที่อยู่ *"
+            label="Address *"
             name="address"
             register={register}
             error={errors.address}
-            placeholder="บ้านเลขที่, ถนน, ซอย, จังหวัด..."
+            placeholder="Street, district, city, province..."
           />
         </div>
 
         <SelectField
-          label="ภาษาที่ถนัด *"
+          label="Preferred Language *"
           name="preferredLanguage"
           setValue={setValue}
           register={register}
           error={errors.preferredLanguage}
           options={[
-            { value: "thai", label: "ไทย" },
-            { value: "english", label: "อังกฤษ" },
-            { value: "other", label: "อื่นๆ" },
+            { value: "thai", label: "Thai" },
+            { value: "english", label: "English" },
+            { value: "other", label: "Other" },
           ]}
         />
         <InputField
-          label="สัญชาติ *"
+          label="Nationality *"
           name="nationality"
           register={register}
           error={errors.nationality}
-          placeholder="เช่น ไทย"
+          placeholder="e.g. Thai"
         />
         <InputField
-          label="ชื่อผู้ติดต่อฉุกเฉิน (ทางเลือก)"
+          label="Emergency Contact Name (optional)"
           name="emergencyContactName"
           register={register}
           error={errors.emergencyContactName}
         />
         <InputField
-          label="ความสัมพันธ์ผู้ติดต่อ (ทางเลือก)"
+          label="Relationship (optional)"
           name="emergencyContactRelationship"
           register={register}
           error={errors.emergencyContactRelationship}
         />
         <InputField
-          label="ศาสนา (ทางเลือก)"
+          label="Religion (optional)"
           name="religion"
           register={register}
           error={errors.religion}
         />
       </div>
 
-      <div className="mt-8 flex justify-end">
+      <div className="mt-10 flex justify-end">
         <button
           type="submit"
           disabled={isSubmitSuccessful}
-          className={`px-6 py-2 font-semibold rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
+          className={`px-8 py-3 font-bold rounded-xl shadow-sm focus:outline-none focus:ring-4 transition-all duration-200 ${
             isSubmitSuccessful
-              ? "bg-gray-400 text-gray-200 cursor-not-allowed" // เปลี่ยนปุ่มเป็นสีเทาเมื่อส่งสำเร็จ
-              : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
+              ? "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
+              : "bg-[#1A59C2] text-white hover:bg-[#1548a1] hover:shadow-md hover:-translate-y-0.5 focus:ring-[#BFD4F8]"
           }`}
         >
-          {isSubmitSuccessful ? "ส่งข้อมูลสำเร็จ" : "ส่งข้อมูล"}
+          {isSubmitSuccessful ? "Submitted successfully" : "Submit Information"}
         </button>
       </div>
     </form>
