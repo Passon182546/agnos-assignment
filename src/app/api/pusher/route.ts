@@ -35,8 +35,12 @@ export async function POST(req: Request) {
       }
     } else {
       // 3. สถานะอื่นๆ ยอมให้ข้อมูลแหว่งได้ แต่ต้อง "ตรงชนิด" ตาม schema (partial)
-      //    ป้องกัน garbage data ประเภทแปลกๆ หลุดเข้าไปโชว์หน้า staff
-      const partialResult = patientFormSchema.partial().safeParse(body.formData);
+      //    HTML input มักส่งค่าเป็น '' แทน undefined จึงต้อง normalize ก่อน validate
+      const cleanedData = Object.fromEntries(
+        Object.entries(body.formData).map(([key, value]) => [key, value === '' ? undefined : value])
+      );
+
+      const partialResult = patientFormSchema.partial().safeParse(cleanedData);
       if (!partialResult.success) {
         return NextResponse.json(
           { success: false, error: 'ข้อมูลไม่ถูกต้อง' },
