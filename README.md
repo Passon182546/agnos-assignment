@@ -2,7 +2,9 @@
 
 A modern patient registration system with a real-time staff monitoring dashboard built as a front-end assignment for the Agnos Front-end Developer evaluation.
 
-## Overview
+## Live Demo & Links
+* **Live Application:** [https://agnos-assignment-git-master-passon182546s-projects.vercel.app](https://agnos-assignment-git-master-passon182546s-projects.vercel.app)
+* **Repository:** [https://github.com/Passon182546/agnos-assignment](https://github.com/Passon182546/agnos-assignment)
 
 This application allows patients to fill out a registration form while staff members can monitor the form data in real time. Every change is synchronized instantly through WebSockets, enabling staff to track patient activity without refreshing the page.
 
