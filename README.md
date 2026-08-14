@@ -1,66 +1,193 @@
 # Agnos Patient Registration & Real-Time Staff Dashboard
 
-This project is a front-end assignment for the Agnos Front-end Developer candidate evaluation. It features a responsive patient input form that synchronizes data in real-time with a staff monitoring dashboard.
+A modern patient registration system with a real-time staff monitoring dashboard built as a front-end assignment for the Agnos Front-end Developer evaluation.
 
-## Live Demo & Links
-* **Live Application:** [https://agnos-assignment-git-master-passon182546s-projects.vercel.app]
-* **Repository:** [https://github.com/Passon182546/agnos-assignment]
+## Overview
 
----
+This application allows patients to fill out a registration form while staff members can monitor the form data in real time. Every change is synchronized instantly through WebSockets, enabling staff to track patient activity without refreshing the page.
 
-## Key Features & Bonus Implementations
-* **Real-time Synchronization:** Utilizes WebSockets (Pusher) for sub-second data syncing.
-* **Smart Status Indicators:** Staff can see if a patient is "actively filling in", "inactive", or "submitted".
-* **Debounce Optimization (Bonus):** Form data is debounced by 500ms before syncing to prevent unnecessary API calls and reduce server load.
-* **100% Test Coverage (Bonus):** Comprehensive Unit and Integration tests using **Jest** and React Testing Library, covering all components, custom hooks, and complex asynchronous timer logic.
-* **Double Validation:** Strict data validation using Zod on both the Client-Side (React Hook Form) and Server-Side (Next.js API Routes).
-* **Responsive & Modern UI:** Designed with a clean, medical-tech aesthetic using Tailwind CSS.
+The project demonstrates front-end development best practices, including real-time communication, form validation, component-based architecture, responsive design, and comprehensive testing.
 
----
+## Live Demo
 
-## 🛠 Tech Stack
-* **Framework:** Next.js 16 (App Router)
-* **Styling:** Tailwind CSS
-* **Real-Time Communication:** Pusher (WebSockets)
-* **Form & Validation:** React Hook Form, Zod
-* **Testing:** Jest, React Testing Library
-* **Deployment:** Vercel
+- Live Application: https://agnos-assignment-git-master-passon182546s-projects.vercel.app
+- GitHub Repository: https://github.com/Passon182546/agnos-assignment
 
----
+## Features
 
-## Development Planning Documentation
+### Real-Time Synchronization
 
-### 1. Project Structure
-The project utilizes the Next.js App Router paradigm for optimal performance and organization:
-* `/src/app`: Contains the main layout, global styles, and the `/api/pusher` serverless route for handling WebSocket triggers.
-* `/src/components`: Divided logically into:
-  * `/form`: Contains the `PatientForm` and highly reusable UI components (`InputField`, `SelectField`, `DatePickerField`).
-  * `/staff`: Contains the `StaffDashboard` and `PatientCard`.
-* `/src/hooks`: Custom React hooks, notably `useFormSync.ts` which encapsulates the complex timer and synchronization logic.
-* `/src/lib`: Configuration files for Pusher clients/servers and Zod validation schemas.
+- Instant form synchronization using Pusher and WebSockets
+- Sub-second updates between the patient form and the staff dashboard
+- Support for multiple simultaneous users
 
-### 2. Design Decisions (UI/UX)
-* **Split View Layout:** Designed to display both the Patient Form and Staff Dashboard on a single page (on large screens) to allow evaluators to easily test the real-time functionality without opening multiple tabs.
-* **Mobile-First Approach:** On smaller screens, the layout gracefully stacks, prioritizing the patient form at the top.
-* **Visual Hierarchy & Cues:** Used distinct colors (Blue for actively typing, Green for submitted) and a left-border accent on the staff cards to allow staff to quickly identify patient statuses at a glance.
+### Patient Status Tracking
 
-### 3. Component Architecture
-* **`PatientForm`**: The central data-entry component. It registers fields, handles local validation errors, and passes the current form state to the custom hook.
-* **`DatePickerField`**: A custom-built, fully tested calendar component providing a better UX than standard HTML date inputs.
-* **`StaffDashboard`**: Manages the subscription to the Pusher channel. It utilizes a dictionary state (`Record<string, SyncPayload>`) keyed by `sessionId` to elegantly handle multiple patients simultaneously without data collision.
+Staff members can monitor each patient's current status:
 
-### 4. Real-Time Synchronization Flow
-1. **Typing & Debouncing:** As the patient types, `React Hook Form` watches the inputs. The `useFormSync` hook debounces these rapid changes (500ms).
-2. **Status Evaluation:** The hook evaluates if the user is typing ("actively filling in") or idle for 3 seconds ("inactive").
-3. **API Routing & Validation:** The payload (including a unique `sessionId`) is sent to `POST /api/pusher`. The API validates the partial data using Zod to prevent garbage data from entering the stream.
-4. **WebSocket Trigger:** If valid, the server triggers a 'form-update' event via `pusherServer`.
-5. **Client Subscription:** The `StaffDashboard` receives the event via `pusherClient` and updates the UI instantly, matching the payload to the correct patient card via the `sessionId`.
+- **Actively filling in** — The patient is currently entering data
+- **Inactive** — No activity has been detected for 3 seconds
+- **Submitted** — The registration form has been completed
 
----
+### Performance Optimization
 
-## Getting Started (Local Setup)
+- 500 ms debouncing to reduce unnecessary synchronization requests
+- Optimized API communication
+- Reduced server load during continuous typing
 
-1. **Clone the repository:**
-   ```bash
-   git clone [Insert your GitHub URL here]
-   cd agnos-assignment
+### Data Validation
+
+Validation is implemented on both the client and server sides:
+
+- Client-side validation using React Hook Form and Zod
+- Server-side validation using Zod
+- Protection against invalid or incomplete data
+
+### Responsive User Interface
+
+- Mobile-first design
+- Split-screen layout for easier testing
+- Modern medical dashboard interface
+- Fully responsive across different screen sizes
+
+### Testing
+
+- 100% test coverage
+- Unit testing with Jest
+- Integration testing with React Testing Library
+- Coverage for components, hooks, and asynchronous logic
+
+## Tech Stack
+
+| Technology | Purpose |
+| --- | --- |
+| Next.js 16 | Application framework |
+| Tailwind CSS | Styling |
+| Pusher | Real-time communication |
+| React Hook Form | Form management |
+| Zod | Data validation |
+| Jest | Unit testing |
+| React Testing Library | Integration testing |
+| Vercel | Deployment |
+
+## Project Structure
+
+```text
+src/
+├── app/
+│   ├── api/
+│   │   └── pusher/
+│   ├── layout.tsx
+│   └── globals.css
+├── components/
+│   ├── form/
+│   │   ├── PatientForm
+│   │   ├── InputField
+│   │   ├── SelectField
+│   │   └── DatePickerField
+│   └── staff/
+│       ├── StaffDashboard
+│       └── PatientCard
+├── hooks/
+│   └── useFormSync.ts
+└── lib/
+    ├── pusher/
+    └── validation/
+```
+
+## Real-Time Data Flow
+
+```text
+Patient Input
+      ↓
+React Hook Form
+      ↓
+500 ms Debounce
+      ↓
+useFormSync Hook
+      ↓
+POST /api/pusher
+      ↓
+Zod Validation
+      ↓
+Pusher WebSocket Event
+      ↓
+Staff Dashboard
+      ↓
+Real-Time UI Update
+```
+
+## Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Passon182546/agnos-assignment.git
+cd agnos-assignment
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env.local` file in the project root.
+
+```env
+NEXT_PUBLIC_PUSHER_APP_KEY=your_app_key
+NEXT_PUBLIC_PUSHER_CLUSTER=your_cluster
+PUSHER_APP_ID=your_app_id
+PUSHER_SECRET=your_secret
+```
+
+### 4. Start the Development Server
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:3000` in your browser.
+
+## Running Tests
+
+Run the test suite:
+
+```bash
+npm run test
+```
+
+Generate a coverage report:
+
+```bash
+npm run test -- --coverage
+```
+
+## Design Decisions
+
+### Split-View Layout
+
+The application displays both the patient form and the staff dashboard on the same page. This approach makes it easier to test and demonstrate the real-time synchronization feature.
+
+### Mobile-First Development
+
+The interface was designed with a mobile-first approach. On smaller devices, the layout automatically adjusts by stacking components vertically.
+
+### Component-Based Architecture
+
+The application separates responsibilities into reusable components and custom hooks, making the codebase easier to maintain, test, and extend.
+
+## Future Improvements
+
+- User authentication
+- Database integration
+- Persistent patient records
+- Notification system
+- Administrative dashboard
+- Form history tracking
+
+## License
+
+This project was created as part of the Agnos Front-end Developer candidate evaluation.
