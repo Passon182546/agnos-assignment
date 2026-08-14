@@ -3,8 +3,8 @@
 This project is a front-end assignment for the Agnos Front-end Developer candidate evaluation. It features a responsive patient input form that synchronizes data in real-time with a staff monitoring dashboard.
 
 ## Live Demo & Links
-* **Live Application:** [https://agnos-assignment-git-master-passon182546s-projects.vercel.app]
-* **Repository:** [https://github.com/Passon182546/agnos-assignment]
+* **Live Application:** [https://agnos-assignment-git-master-passon182546s-projects.vercel.app](https://agnos-assignment-git-master-passon182546s-projects.vercel.app)
+* **Repository:** [https://github.com/Passon182546/agnos-assignment](https://github.com/Passon182546/agnos-assignment)
 
 ---
 
@@ -62,5 +62,5 @@ The project utilizes the Next.js App Router paradigm for optimal performance and
 
 1. **Clone the repository:**
    ```bash
-   git clone [Insert your GitHub URL here]
+   git clone https://github.com/Passon182546/agnos-assignment.git
    cd agnos-assignment
