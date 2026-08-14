@@ -46,9 +46,7 @@ const StaffDashboard: React.FC = () => {
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        Staff Dashboard
-      </h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">Staff Dashboard</h2>
 
       {patientList.length === 0 ? (
         <div className="text-center p-10 bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg text-gray-500">
@@ -92,14 +90,14 @@ const PatientCard = ({ patient }: { patient: SyncPayload }) => {
   return (
     // เพิ่ม border-l-4 เพื่อสร้างแถบสีด้านซ้ายของการ์ด
     <div
-      className={`p-5 bg-white rounded-xl shadow-sm border border-slate-100 border-l-4 ${currentStatus.border} transition-all hover:shadow-md`}
+      className={`p-5 bg-white rounded-xl shadow-sm border border-slate-100 border-l-4 ${currentStatus.border} transition-all hover:shadow-md min-h-[190px] flex flex-col`}
     >
       <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="font-bold text-lg text-slate-800">
+        <div className="min-w-0 flex-1">
+          <h3 className="font-bold text-lg text-slate-800 truncate">
             {formData.firstName || formData.lastName
               ? `${formData.firstName || ""} ${formData.lastName || ""}`
-              : "New patient (filling in)"}
+              : "New patient"}
           </h3>
           <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
             <svg
@@ -120,13 +118,13 @@ const PatientCard = ({ patient }: { patient: SyncPayload }) => {
         </div>
 
         <span
-          className={`px-2.5 py-1 rounded-md text-xs font-bold border ${currentStatus.badge}`}
+          className={`px-2.5 py-1 rounded-md text-xs font-bold border shrink-0 ${currentStatus.badge}`}
         >
           {currentStatus.text}
         </span>
       </div>
 
-      <div className="space-y-2.5 text-sm">
+      <div className="space-y-2.5 text-sm flex-1">
         <p className="flex gap-2 justify-between items-center">
           <span className="text-slate-500 font-medium">Gender:</span>
           <span className="font-semibold text-slate-900">
